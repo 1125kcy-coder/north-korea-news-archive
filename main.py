@@ -69,6 +69,44 @@ def fetch_yna_links():
 
     return unique[:20]
 
+def fetch_voa_links():
+    url = "https://www.voakorea.com/z/2712"
+    html = requests.get(url, timeout=20).text
+    soup = BeautifulSoup(html, "html.parser")
+
+    links = []
+
+    for a in soup.find_all("a", href=True):
+        href = a["href"]
+        title = a.get_text(" ", strip=True)
+
+        if not title or len(title) < 8:
+            continue
+
+        if href.startswith("/"):
+            href = "https://www.voakorea.com" + href
+
+        if "voakorea.com/a/" not in href:
+            continue
+
+        href = href.split("#")[0]
+
+        links.append({
+            "title": title,
+            "url": href,
+            "source": "VOA"
+        })
+
+    unique = []
+    seen = set()
+
+    for item in links:
+        if item["url"] not in seen:
+            unique.append(item)
+            seen.add(item["url"])
+
+    return unique[:20]
+
 def classify_article(title, source):
     prompt = f"""
 다음 북한 관련 기사를 분류하라.
@@ -103,7 +141,7 @@ def main():
     ws = connect_sheet()
     existing_urls = get_existing_urls(ws)
 
-    articles = fetch_yna_links()
+    articles = fetch_yna_links() + fetch_voa_links()
     today = datetime.now().strftime("%Y-%m-%d")
 
     added = 0
