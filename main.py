@@ -42,6 +42,26 @@ def rule_based_category(title):
                 return category
     return None
 
+def extract_date_from_url(url, source):
+    if source == "연합뉴스":
+        m = re.search(r"AKR(\d{8})", url)
+        if m:
+            d = m.group(1)
+            return f"{d[:4]}-{d[4:6]}-{d[6:8]}"
+
+    if source == "데일리NK":
+        m = re.search(r"dailynk\.com/(\d{8})", url)
+        if m:
+            d = m.group(1)
+            return f"{d[:4]}-{d[4:6]}-{d[6:8]}"
+
+    if source == "아시아프레스":
+        m = re.search(r"/korean/(\d{4})/(\d{2})/", url)
+        if m:
+            return f"{m.group(1)}-{m.group(2)}-01"
+
+    return datetime.now().strftime("%Y-%m-%d")
+
 def connect_sheet():
     info = json.loads(os.environ["GOOGLE_SERVICE_ACCOUNT_JSON"])
     scopes = [
@@ -382,21 +402,33 @@ def main():
             continue
 
         category = classify_article(article["title"], article["source"])
+        article_date = extract_date_from_url(article["url"], article["source"])
 
-        ws.append_row(
-            [
-                today,
-                article["title"],
-                article["source"],
-                category,
-                article["url"],
-            ],
-            value_input_option="RAW",
-        )
+      ws.append_row(
+    [
+        article_date,
+        article["title"],
+        article["source"],
+        category,
+        article["url"],
+    ],
 
         added += 1
         print(f"Added: {article['title']} / {category}")
+    if added > 0:
+        rows = ws.get_all_values()
+        header = rows[0]
+        data = rows[1:]
 
+        data.sort(key=lambda row: row[0])
+
+
+
+
+        
+        ws.clear()
+        ws.append_row(header, value_input_option="RAW")
+        ws.append_rows(data, value_input_option="RAW")
     print(f"완료: 신규 기사 {added}건 추가")
 
 if __name__ == "__main__":
