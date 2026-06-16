@@ -1,23 +1,27 @@
-name: NK News Crawler Test
+name: NK News Crawler
 
 on:
-  workflow_dispatch:
+workflow_dispatch:
 
 jobs:
-  run-crawler:
-    runs-on: ubuntu-latest
+run:
+runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+```
+steps:
+  - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
+  - uses: actions/setup-python@v5
+    with:
+      python-version: "3.11"
 
-      - name: Install dependencies
-        run: pip install -r requirements.txt
+  - run: pip install -r requirements.txt
 
-      - name: Run crawler
-        run: python main.py
+  - name: Run crawler
+    env:
+      GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+      SHEET_ID: ${{ secrets.SHEET_ID }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+    run: python main.py
+```
+
