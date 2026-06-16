@@ -108,7 +108,7 @@ def fetch_voa_links():
     return unique[:20]
 
 def fetch_spn_links():
-    url = "https://www.spnews.co.kr/"
+    url = "https://www.spnews.co.kr/news/articleList.html?sc_section_code=S1N1&view_type=sm"
     html = requests.get(url, timeout=20).text
     soup = BeautifulSoup(html, "html.parser")
 
@@ -124,10 +124,7 @@ def fetch_spn_links():
         if href.startswith("/"):
             href = "https://www.spnews.co.kr" + href
 
-        if "spnews.co.kr" not in href:
-            continue
-
-        if any(x in href for x in ["/com/", "/member/", "/bbs/", "javascript"]):
+        if "/news/articleView.html" not in href:
             continue
 
         href = href.split("#")[0]
@@ -147,7 +144,7 @@ def fetch_spn_links():
             seen.add(item["url"])
 
     return unique[:20]
-
+    
 def classify_article(title, source):
     prompt = f"""
 다음 북한 관련 기사를 분류하라.
