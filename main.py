@@ -107,6 +107,47 @@ def fetch_voa_links():
 
     return unique[:20]
 
+def fetch_spn_links():
+    url = "https://www.spnews.co.kr/"
+    html = requests.get(url, timeout=20).text
+    soup = BeautifulSoup(html, "html.parser")
+
+    links = []
+
+    for a in soup.find_all("a", href=True):
+        href = a["href"]
+        title = a.get_text(" ", strip=True)
+
+        if not title or len(title) < 8:
+            continue
+
+        if href.startswith("/"):
+            href = "https://www.spnews.co.kr" + href
+
+        if "spnews.co.kr" not in href:
+            continue
+
+        if any(x in href for x in ["/com/", "/member/", "/bbs/", "javascript"]):
+            continue
+
+        href = href.split("#")[0]
+
+        links.append({
+            "title": title,
+            "url": href,
+            "source": "SPN"
+        })
+
+    unique = []
+    seen = set()
+
+    for item in links:
+        if item["url"] not in seen:
+            unique.append(item)
+            seen.add(item["url"])
+
+    return unique[:20]
+
 def classify_article(title, source):
     prompt = f"""
 다음 북한 관련 기사를 분류하라.
@@ -141,7 +182,7 @@ def main():
     ws = connect_sheet()
     existing_urls = get_existing_urls(ws)
 
-    articles = fetch_yna_links() + fetch_voa_links()
+ articles = fetch_yna_links() + fetch_voa_links() + fetch_spn_links()
     today = datetime.now().strftime("%Y-%m-%d")
 
     added = 0
