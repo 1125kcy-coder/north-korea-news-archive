@@ -208,6 +208,50 @@ def fetch_rfa_links():
 
     return unique[:20]
 
+def fetch_dailynk_links():
+    url = "https://www.dailynk.com/all/"
+    html = requests.get(url, timeout=20).text
+    soup = BeautifulSoup(html, "html.parser")
+
+    links = []
+
+    for a in soup.find_all("a", href=True):
+        href = a["href"]
+        title = a.get_text(" ", strip=True)
+
+        if not title or len(title) < 8:
+            continue
+
+        if href.startswith("/"):
+            href = "https://www.dailynk.com" + href
+
+        if "dailynk.com" not in href:
+            continue
+
+        if any(x in href for x in ["/category/", "/tag/", "/author/", "/page/", "#", "javascript"]):
+            continue
+
+        if not re.search(r"/\d{4}/\d{2}/", href):
+            continue
+
+        href = href.split("#")[0]
+
+        links.append({
+            "title": title,
+            "url": href,
+            "source": "데일리NK"
+        })
+
+    unique = []
+    seen = set()
+
+    for item in links:
+        if item["url"] not in seen:
+            unique.append(item)
+            seen.add(item["url"])
+
+    return unique[:20]
+
 def classify_article(title, source):
 
     rule_category = rule_based_category(title)
@@ -247,7 +291,7 @@ def main():
     ws = connect_sheet()
     existing_urls = get_existing_urls(ws)
 
-    articles = fetch_yna_links() + fetch_voa_links() + fetch_spn_links() + fetch_rfa_links()
+    articles = fetch_yna_links() + fetch_voa_links() + fetch_spn_links() + fetch_rfa_links() + fetch_dailynk_links()
     today = datetime.now().strftime("%Y-%m-%d")
 
     added = 0
