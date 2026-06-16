@@ -42,25 +42,14 @@ def rule_based_category(title):
                 return category
     return None
 
-def extract_date_from_url(url, source):
-    if source == "연합뉴스":
-        m = re.search(r"AKR(\d{8})", url)
-        if m:
-            d = m.group(1)
-            return f"{d[:4]}-{d[4:6]}-{d[6:8]}"
-
-    if source == "데일리NK":
-        m = re.search(r"dailynk\.com/(\d{8})", url)
-        if m:
-            d = m.group(1)
-            return f"{d[:4]}-{d[4:6]}-{d[6:8]}"
-
-    if source == "아시아프레스":
-        m = re.search(r"/korean/(\d{4})/(\d{2})/", url)
-        if m:
-            return f"{m.group(1)}-{m.group(2)}-01"
-
-    return datetime.now().strftime("%Y-%m-%d")
+today = datetime.now().strftime("%Y-%m-%d")
+[
+    today,
+    article["title"],
+    article["source"],
+    category,
+    article["url"]
+]
 
 def connect_sheet():
     info = json.loads(os.environ["GOOGLE_SERVICE_ACCOUNT_JSON"])
@@ -293,66 +282,6 @@ def fetch_dailynk_links():
 
     return unique[:20]
 
-def fetch_asiapress_links():
-    url = "https://www.asiapress.org/korean/"
-    headers = {
-        "User-Agent": "Mozilla/5.0"
-    }
-
-    response = requests.get(url, headers=headers, timeout=20)
-    response.encoding = response.apparent_encoding
-
-    soup = BeautifulSoup(response.text, "html.parser")
-
-    links = []
-
-    for a in soup.find_all("a", href=True):
-        href = a["href"].strip()
-        title = a.get_text(" ", strip=True)
-
-        if not title or len(title) < 8:
-            continue
-
-        if href.startswith("/"):
-            href = "https://www.asiapress.org" + href
-
-        if "asiapress.org/korean" not in href:
-            continue
-
-        if any(x in href for x in [
-            "/category/",
-            "/tag/",
-            "/author/",
-            "/page/",
-            "/about/",
-            "#",
-            "javascript"
-        ]):
-            continue
-
-        if not re.search(r"/korean/\d{4}/\d{2}/", href):
-            continue
-
-        href = href.split("#")[0]
-
-        links.append({
-            "title": title,
-            "url": href,
-            "source": "아시아프레스"
-        })
-
-    unique = []
-    seen = set()
-
-    for item in links:
-        if item["url"] not in seen:
-            unique.append(item)
-            seen.add(item["url"])
-
-    print(f"Asia Press collected: {len(unique)}")
-
-    return unique[:20]
-
 def classify_article(title, source):
 
     rule_category = rule_based_category(title)
@@ -392,7 +321,7 @@ def main():
     ws = connect_sheet()
     existing_urls = get_existing_urls(ws)
 
-    articles = fetch_yna_links() + fetch_voa_links() + fetch_spn_links() + fetch_rfa_links() + fetch_dailynk_links() + fetch_asiapress_links()
+    articles = fetch_yna_links() + fetch_voa_links() + fetch_spn_links() + fetch_rfa_links() + fetch_dailynk_links()
     today = datetime.now().strftime("%Y-%m-%d")
 
     added = 0
@@ -418,17 +347,7 @@ def main():
         added += 1
         print(f"Added: {article['title']} / {category}")
         
-    if added > 0:
-        rows = ws.get_all_values()
-        header = rows[0]
-        data = rows[1:]
-
-        data.sort(key=lambda row: row[0])
-
-        ws.clear()
-        ws.append_row(header, value_input_option="RAW")
-        ws.append_rows(data, value_input_option="RAW")
-
+   
     print(f"완료: 신규 기사 {added}건 추가")
     
 if __name__ == "__main__":
