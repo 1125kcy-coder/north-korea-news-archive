@@ -43,13 +43,6 @@ def rule_based_category(title):
     return None
 
 today = datetime.now().strftime("%Y-%m-%d")
-[
-    today,
-    article["title"],
-    article["source"],
-    category,
-    article["url"]
-]
 
 def connect_sheet():
     info = json.loads(os.environ["GOOGLE_SERVICE_ACCOUNT_JSON"])
@@ -321,9 +314,15 @@ def main():
     ws = connect_sheet()
     existing_urls = get_existing_urls(ws)
 
-    articles = fetch_yna_links() + fetch_voa_links() + fetch_spn_links() + fetch_rfa_links() + fetch_dailynk_links()
-    today = datetime.now().strftime("%Y-%m-%d")
+    articles = (
+        fetch_yna_links()
+        + fetch_voa_links()
+        + fetch_spn_links()
+        + fetch_rfa_links()
+        + fetch_dailynk_links()
+    )
 
+    today = datetime.now().strftime("%Y-%m-%d")
     added = 0
 
     for article in articles:
@@ -331,11 +330,10 @@ def main():
             continue
 
         category = classify_article(article["title"], article["source"])
-        article_date = extract_date_from_url(article["url"], article["source"])
 
         ws.append_row(
             [
-                article_date,
+                today,
                 article["title"],
                 article["source"],
                 category,
@@ -346,8 +344,7 @@ def main():
 
         added += 1
         print(f"Added: {article['title']} / {category}")
-        
-   
+
     print(f"완료: 신규 기사 {added}건 추가")
     
 if __name__ == "__main__":
