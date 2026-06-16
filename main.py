@@ -404,33 +404,33 @@ def main():
         category = classify_article(article["title"], article["source"])
         article_date = extract_date_from_url(article["url"], article["source"])
 
-      ws.append_row(
-    [
-        article_date,
-        article["title"],
-        article["source"],
-        category,
-        article["url"],
-    ],
+        ws.append_row(
+            [
+                article_date,
+                article["title"],
+                article["source"],
+                category,
+                article["url"],
+            ],
+            value_input_option="RAW",
+        )
 
         added += 1
         print(f"Added: {article['title']} / {category}")
-    if added > 0:
+        
+        if added > 0:
         rows = ws.get_all_values()
         header = rows[0]
         data = rows[1:]
 
         data.sort(key=lambda row: row[0])
 
-
-
-
-        
         ws.clear()
         ws.append_row(header, value_input_option="RAW")
         ws.append_rows(data, value_input_option="RAW")
-    print(f"완료: 신규 기사 {added}건 추가")
 
+    print(f"완료: 신규 기사 {added}건 추가")
+    
 if __name__ == "__main__":
     main()
 
