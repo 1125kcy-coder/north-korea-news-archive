@@ -42,8 +42,6 @@ def rule_based_category(title):
                 return category
     return None
 
-today = datetime.now().strftime("%Y-%m-%d")
-
 def connect_sheet():
     info = json.loads(os.environ["GOOGLE_SERVICE_ACCOUNT_JSON"])
     scopes = [
@@ -170,7 +168,7 @@ def fetch_spn_links():
     return unique[:20]
 
 def fetch_rfa_links():
-    url = "https://www.rfa.org/korean/in_focus/"
+    url = "https://www.rfa.org/korean/"
     headers = {
         "User-Agent": "Mozilla/5.0"
     }
@@ -191,6 +189,15 @@ def fetch_rfa_links():
             href = "https://www.rfa.org" + href
 
         if "rfa.org/korean" not in href:
+            continue
+
+        if any(x in href for x in [
+            "/multimedia/",
+            "/podcast/",
+            "/about/",
+            "#",
+            "javascript"
+        ]):
             continue
 
         if not href.endswith(".html"):
@@ -215,7 +222,6 @@ def fetch_rfa_links():
     print(f"RFA collected: {len(unique)}")
 
     return unique[:20]
-
 def fetch_dailynk_links():
     url = "https://www.dailynk.com/all/"
     headers = {
