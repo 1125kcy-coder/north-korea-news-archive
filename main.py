@@ -20,6 +20,28 @@ CATEGORIES = [
     "산업기술", "산업생산", "인도적지원"
 ]
 
+KEYWORD_RULES = {
+    "북러무역": ["러시아", "북러", "두만강", "파병", "노동자", "무역"],
+    "북중무역": ["중국", "북중", "단둥", "무역", "수출", "수입", "교역"],
+    "대북제재": ["제재", "유엔", "안보리", "불법", "위반", "동결"],
+    "북미관계": ["미국", "트럼프", "워싱턴", "북미", "백악관"],
+    "남북관계": ["한국", "남북", "통일부", "이재명", "서울"],
+    "북한관광": ["관광", "원산", "갈마", "관광지"],
+    "산업건설": ["건설", "착공", "준공", "완공", "공사"],
+    "산업생산": ["공장", "생산", "기업소", "증산"],
+    "인도적지원": ["지원", "식량", "보건", "아동", "유니세프", "WFP"],
+    "가상화폐": ["해킹", "암호화폐", "가상화폐", "코인"],
+    "북한경제": ["물가", "환율", "장마당", "식량", "경제", "농민", "배급"],
+    "북한외교": ["외교", "대사", "회담", "방문", "외무성"],
+}
+
+def rule_based_category(title):
+    for category, keywords in KEYWORD_RULES.items():
+        for keyword in keywords:
+            if keyword in title:
+                return category
+    return None
+
 def connect_sheet():
     info = json.loads(os.environ["GOOGLE_SERVICE_ACCOUNT_JSON"])
     scopes = [
@@ -144,8 +166,54 @@ def fetch_spn_links():
             seen.add(item["url"])
 
     return unique[:20]
-    
+
+def fetch_rfa_links():
+    url = "https://www.rfa.org/korean/in_focus/"
+    html = requests.get(url, timeout=20).text
+    soup = BeautifulSoup(html, "html.parser")
+
+    links = []
+
+    for a in soup.find_all("a", href=True):
+        href = a["href"]
+        title = a.get_text(" ", strip=True)
+
+        if not title or len(title) < 8:
+            continue
+
+        if href.startswith("/"):
+            href = "https://www.rfa.org" + href
+
+        if "rfa.org/korean" not in href:
+            continue
+
+        if not href.endswith(".html"):
+            continue
+
+        href = href.split("#")[0]
+
+        links.append({
+            "title": title,
+            "url": href,
+            "source": "RFA"
+        })
+
+    unique = []
+    seen = set()
+
+    for item in links:
+        if item["url"] not in seen:
+            unique.append(item)
+            seen.add(item["url"])
+
+    return unique[:20]
+
 def classify_article(title, source):
+
+    rule_category = rule_based_category(title)
+    if rule_category:
+        return rule_category
+
     prompt = f"""
 다음 북한 관련 기사를 분류하라.
 
@@ -179,7 +247,7 @@ def main():
     ws = connect_sheet()
     existing_urls = get_existing_urls(ws)
 
-    articles = fetch_yna_links() + fetch_voa_links() + fetch_spn_links()
+    articles = fetch_yna_links() + fetch_voa_links() + fetch_spn_links() + fetch_rfa_links()
     today = datetime.now().strftime("%Y-%m-%d")
 
     added = 0
