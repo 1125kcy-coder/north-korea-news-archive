@@ -1,14 +1,37 @@
-import requests
-from bs4 import BeautifulSoup
+import os
+import json
+import gspread
+from google.oauth2.service_account import Credentials
 
-URL = "https://www.yna.co.kr/nk/news/all"
+SHEET_ID = os.environ["SHEET_ID"]
 
-response = requests.get(URL)
-response.raise_for_status()
+service_account_info = json.loads(
+os.environ["GOOGLE_SERVICE_ACCOUNT_JSON"]
+)
 
-soup = BeautifulSoup(response.text, "html.parser")
+scopes = [
+"https://www.googleapis.com/auth/spreadsheets",
+"https://www.googleapis.com/auth/drive"
+]
 
-print("연합뉴스 북한포털 접속 성공")
+credentials = Credentials.from_service_account_info(
+service_account_info,
+scopes=scopes
+)
 
-for link in soup.find_all("a", href=True)[:20]:
-    print(link["href"])
+gc = gspread.authorize(credentials)
+
+spreadsheet = gc.open_by_key(SHEET_ID)
+
+worksheet = spreadsheet.sheet1
+
+worksheet.append_row([
+"TEST",
+"GitHub 연결 성공",
+"SYSTEM",
+"테스트",
+"https://example.com"
+])
+
+print("Google Sheets 연결 성공")
+
