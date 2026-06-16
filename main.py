@@ -182,7 +182,7 @@ def main():
     ws = connect_sheet()
     existing_urls = get_existing_urls(ws)
 
- articles = fetch_yna_links() + fetch_voa_links() + fetch_spn_links()
+articles = fetch_yna_links() + fetch_voa_links() + fetch_spn_links()
     today = datetime.now().strftime("%Y-%m-%d")
 
     added = 0
