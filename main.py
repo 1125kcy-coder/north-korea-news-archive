@@ -418,7 +418,7 @@ def main():
         added += 1
         print(f"Added: {article['title']} / {category}")
         
-        if added > 0:
+    if added > 0:
         rows = ws.get_all_values()
         header = rows[0]
         data = rows[1:]
