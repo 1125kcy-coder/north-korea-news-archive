@@ -168,14 +168,18 @@ def fetch_spn_links():
     return unique[:20]
 
 def fetch_rfa_links():
-    url = "https://www.rfa.org/korean/in-focus/"
-    html = requests.get(url, timeout=20).text
+    url = "https://www.rfa.org/korean/in_focus/"
+    headers = {
+        "User-Agent": "Mozilla/5.0"
+    }
+
+    html = requests.get(url, headers=headers, timeout=20).text
     soup = BeautifulSoup(html, "html.parser")
 
     links = []
 
     for a in soup.find_all("a", href=True):
-        href = a["href"]
+        href = a["href"].strip()
         title = a.get_text(" ", strip=True)
 
         if not title or len(title) < 8:
@@ -206,17 +210,23 @@ def fetch_rfa_links():
             unique.append(item)
             seen.add(item["url"])
 
+    print(f"RFA collected: {len(unique)}")
+
     return unique[:20]
 
 def fetch_dailynk_links():
     url = "https://www.dailynk.com/all/"
-    html = requests.get(url, timeout=20).text
+    headers = {
+        "User-Agent": "Mozilla/5.0"
+    }
+
+    html = requests.get(url, headers=headers, timeout=20).text
     soup = BeautifulSoup(html, "html.parser")
 
     links = []
 
     for a in soup.find_all("a", href=True):
-        href = a["href"]
+        href = a["href"].strip()
         title = a.get_text(" ", strip=True)
 
         if not title or len(title) < 8:
@@ -228,10 +238,19 @@ def fetch_dailynk_links():
         if "dailynk.com" not in href:
             continue
 
-        if any(x in href for x in ["/category/", "/tag/", "/author/", "/page/", "#", "javascript"]):
+        if any(x in href for x in [
+            "/category/",
+            "/tag/",
+            "/author/",
+            "/page/",
+            "/wp-content/",
+            "javascript",
+            "#"
+        ]):
             continue
 
-        if not re.search(r"/\d{4}/\d{2}/", href):
+        # Daily NK 기사 URL은 보통 /20250616-1/ 같은 형태
+        if not re.search(r"dailynk\.com/\d{8}(-\d+)?/?$", href):
             continue
 
         href = href.split("#")[0]
@@ -249,6 +268,8 @@ def fetch_dailynk_links():
         if item["url"] not in seen:
             unique.append(item)
             seen.add(item["url"])
+
+    print(f"Daily NK collected: {len(unique)}")
 
     return unique[:20]
 
