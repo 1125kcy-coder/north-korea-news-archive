@@ -279,8 +279,10 @@ def fetch_asiapress_links():
         "User-Agent": "Mozilla/5.0"
     }
 
-    html = requests.get(url, headers=headers, timeout=20).text
-    soup = BeautifulSoup(html, "html.parser")
+    response = requests.get(url, headers=headers, timeout=20)
+    response.encoding = response.apparent_encoding
+
+    soup = BeautifulSoup(response.text, "html.parser")
 
     links = []
 
