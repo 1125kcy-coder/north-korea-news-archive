@@ -168,7 +168,7 @@ def fetch_spn_links():
     return unique[:20]
 
 def fetch_rfa_links():
-    url = "https://www.rfa.org/korean/in_focus/"
+    url = "https://www.rfa.org/korean/in-focus/"
     html = requests.get(url, timeout=20).text
     soup = BeautifulSoup(html, "html.parser")
 
