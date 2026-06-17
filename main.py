@@ -21,17 +21,20 @@ CATEGORIES = [
 ]
 
 KEYWORD_RULES = {
-    "북러무역": ["러시아", "북러", "두만강", "파병", "노동자", "무역"],
-    "북중무역": ["중국", "북중", "단둥", "무역", "수출", "수입", "교역"],
-    "대북제재": ["제재", "유엔", "안보리", "불법", "위반", "동결"],
-    "북미관계": ["미국", "트럼프", "워싱턴", "북미", "백악관"],
-    "남북관계": ["한국", "남북", "통일부", "이재명", "서울"],
-    "북한관광": ["관광", "원산", "갈마", "관광지"],
-    "산업건설": ["건설", "착공", "준공", "완공", "공사"],
-    "산업생산": ["공장", "생산", "기업소", "증산"],
+    "가상화폐": ["해킹", "암호화폐", "가상화폐", "가상자산", "코인", "라자루스"],
+    "대북제재": ["제재", "유엔", "안보리", "불법", "위반", "동결", "규탄"],
+    "북러무역": ["북러 무역", "북러 교역", "러시아", "수출", "수입", "무역"],
+    "북중무역": ["북중 무역", "북중 교역", "단둥", "중국", "수출", "수입", "교역"],
+    "북미관계": ["미국", "트럼프", "워싱턴", "북미", "백악관", "국무부"],
+    "북중관계": ["중국", "시진핑", "북중", "중국 외교부"],
+    "북러관계": ["러시아", "푸틴", "북러", "라브로프"],
+    "남북관계": ["한국", "남북", "통일부", "이재명", "서울", "개성공단"],
+    "북한관광": ["관광", "관광객", "여행"],
+    "산업건설": ["건설", "착공", "준공", "완공", "공사", "개건"],
+    "산업생산": ["공장", "생산", "기업소", "증산", "생산량"],
+    "산업기술": ["기술", "AI", "인공지능", "연구소", "자동화", "소프트웨어"],
     "인도적지원": ["지원", "식량", "보건", "아동", "유니세프", "WFP"],
-    "가상화폐": ["해킹", "암호화폐", "가상화폐", "코인"],
-    "북한경제": ["물가", "환율", "장마당", "식량", "경제", "농민", "배급"],
+    "북한경제": ["물가", "환율", "장마당", "식량", "경제", "농민", "배급", "시장"],
     "북한외교": ["외교", "대사", "회담", "방문", "외무성"],
 }
 
@@ -62,6 +65,7 @@ def fetch_yna_links():
     soup = BeautifulSoup(html, "html.parser")
 
     links = []
+
     for a in soup.find_all("a", href=True):
         href = a["href"]
         title = a.get_text(" ", strip=True)
@@ -82,14 +86,7 @@ def fetch_yna_links():
         if title and len(title) >= 8:
             links.append({"title": title, "url": href, "source": "연합뉴스"})
 
-    unique = []
-    seen = set()
-    for item in links:
-        if item["url"] not in seen:
-            unique.append(item)
-            seen.add(item["url"])
-
-    return unique[:20]
+    return dedupe_links(links)[:20]
 
 def fetch_voa_links():
     url = "https://www.voakorea.com/z/2712"
@@ -119,15 +116,7 @@ def fetch_voa_links():
             "source": "VOA"
         })
 
-    unique = []
-    seen = set()
-
-    for item in links:
-        if item["url"] not in seen:
-            unique.append(item)
-            seen.add(item["url"])
-
-    return unique[:20]
+    return dedupe_links(links)[:20]
 
 def fetch_spn_links():
     url = "https://www.spnews.co.kr/news/articleList.html?sc_section_code=S1N1&view_type=sm"
@@ -157,21 +146,11 @@ def fetch_spn_links():
             "source": "SPN"
         })
 
-    unique = []
-    seen = set()
-
-    for item in links:
-        if item["url"] not in seen:
-            unique.append(item)
-            seen.add(item["url"])
-
-    return unique[:20]
+    return dedupe_links(links)[:20]
 
 def fetch_rfa_links():
     url = "https://www.rfa.org/korean/"
-    headers = {
-        "User-Agent": "Mozilla/5.0"
-    }
+    headers = {"User-Agent": "Mozilla/5.0"}
 
     html = requests.get(url, headers=headers, timeout=20).text
     soup = BeautifulSoup(html, "html.parser")
@@ -211,23 +190,14 @@ def fetch_rfa_links():
             "source": "RFA"
         })
 
-    unique = []
-    seen = set()
+    links = dedupe_links(links)
+    print(f"RFA collected: {len(links)}")
 
-    for item in links:
-        if item["url"] not in seen:
-            unique.append(item)
-            seen.add(item["url"])
+    return links[:20]
 
-    print(f"RFA collected: {len(unique)}")
-
-    return unique[:20]
-    
 def fetch_dailynk_links():
     url = "https://www.dailynk.com/all/"
-    headers = {
-        "User-Agent": "Mozilla/5.0"
-    }
+    headers = {"User-Agent": "Mozilla/5.0"}
 
     html = requests.get(url, headers=headers, timeout=20).text
     soup = BeautifulSoup(html, "html.parser")
@@ -258,7 +228,6 @@ def fetch_dailynk_links():
         ]):
             continue
 
-        # Daily NK 기사 URL은 보통 /20250616-1/ 같은 형태
         if not re.search(r"dailynk\.com/\d{8}(-\d+)?/?$", href):
             continue
 
@@ -270,6 +239,12 @@ def fetch_dailynk_links():
             "source": "데일리NK"
         })
 
+    links = dedupe_links(links)
+    print(f"Daily NK collected: {len(links)}")
+
+    return links[:20]
+
+def dedupe_links(links):
     unique = []
     seen = set()
 
@@ -278,12 +253,9 @@ def fetch_dailynk_links():
             unique.append(item)
             seen.add(item["url"])
 
-    print(f"Daily NK collected: {len(unique)}")
-
-    return unique[:20]
+    return unique
 
 def classify_article(title, source):
-
     rule_category = rule_based_category(title)
     if rule_category:
         return rule_category
@@ -353,7 +325,6 @@ def main():
         print(f"Added: {article['title']} / {category}")
 
     print(f"완료: 신규 기사 {added}건 추가")
-    
+
 if __name__ == "__main__":
     main()
-
