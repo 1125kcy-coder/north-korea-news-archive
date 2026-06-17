@@ -179,8 +179,8 @@ def fetch_rfa_links():
         ]):
             continue
 
-      if not re.search(r"/korean/.*/\d{4}/\d{2}/\d{2}/", href):
-    continue
+        if not re.search(r"/korean/.*/\d{4}/\d{2}/\d{2}/", href):
+        continue
 
         href = href.split("#")[0]
 
