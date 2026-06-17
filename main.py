@@ -65,6 +65,33 @@ def extract_article_date(url, source):
         if match:
             return f"{match.group(1)}-{match.group(2)}-{match.group(3)}"
 
+    try:
+        headers = {"User-Agent": "Mozilla/5.0"}
+        html = requests.get(url, headers=headers, timeout=20).text
+        soup = BeautifulSoup(html, "html.parser")
+
+        meta_date = soup.find("meta", property="article:published_time")
+        if meta_date and meta_date.get("content"):
+            return meta_date["content"][:10]
+
+        time_tag = soup.find("time")
+        if time_tag:
+            if time_tag.get("datetime"):
+                return time_tag["datetime"][:10]
+
+            text = time_tag.get_text(" ", strip=True)
+            match = re.search(r"(\d{4})[.\-/년]\s*(\d{1,2})[.\-/월]\s*(\d{1,2})", text)
+            if match:
+                return f"{match.group(1)}-{int(match.group(2)):02d}-{int(match.group(3)):02d}"
+
+        text = soup.get_text(" ", strip=True)
+        match = re.search(r"(\d{4})[.\-/년]\s*(\d{1,2})[.\-/월]\s*(\d{1,2})", text)
+        if match:
+            return f"{match.group(1)}-{int(match.group(2)):02d}-{int(match.group(3)):02d}"
+
+    except Exception as e:
+        print(f"Date extraction failed: {source} / {url} / {e}")
+
     return datetime.now().strftime("%Y-%m-%d")
 
 def connect_sheet():
