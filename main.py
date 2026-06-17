@@ -222,6 +222,7 @@ def fetch_rfa_links():
     print(f"RFA collected: {len(unique)}")
 
     return unique[:20]
+    
 def fetch_dailynk_links():
     url = "https://www.dailynk.com/all/"
     headers = {
