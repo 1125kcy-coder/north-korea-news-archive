@@ -481,14 +481,28 @@ def main():
     today_text = datetime.now().strftime("%Y-%m-%d")
     period_text = f"최근 7일 기준 ~ {today_text}"
 
-    weekly_ws.append_row(
-        [
-            today_text,
-            period_text,
-            weekly_summary,
-        ],
-        value_input_option="RAW",
-    )
+    weekly_rows = weekly_ws.get_all_values()
+    updated = False
+
+    for idx, row in enumerate(weekly_rows[1:], start=2):
+        if len(row) >= 1 and row[0] == today_text:
+            weekly_ws.update(
+                f"A{idx}:C{idx}",
+                [[today_text, period_text, weekly_summary]],
+                value_input_option="RAW",
+            )
+            updated = True
+            break
+
+    if not updated:
+        weekly_ws.append_row(
+            [
+                today_text,
+                period_text,
+                weekly_summary,
+            ],
+            value_input_option="RAW",
+        )
 
     print("주간동향 요약 저장 완료")
 
