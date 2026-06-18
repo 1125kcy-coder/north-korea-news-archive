@@ -428,7 +428,6 @@ def classify_article(title, source):
         category = "기타"
 
     return category
-    
 def main():
     print("MAIN STARTED")
 
@@ -492,3 +491,7 @@ def main():
     )
 
     print("주간동향 요약 저장 완료")
+
+
+if __name__ == "__main__":
+    main()
