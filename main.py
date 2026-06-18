@@ -428,8 +428,10 @@ def classify_article(title, source):
         category = "기타"
 
     return category
-print("MAIN STARTED")
+    
 def main():
+    print("MAIN STARTED")
+
     ws = connect_sheet()
     existing_urls = get_existing_urls(ws)
 
@@ -441,6 +443,8 @@ def main():
         + fetch_dailynk_links()
     )
 
+    print(f"총 수집 후보 기사 수: {len(articles)}")
+
     added = 0
 
     for article in articles:
@@ -451,7 +455,8 @@ def main():
         article_date = extract_article_date(
             article["url"],
             article["source"]
-)
+        )
+
         ws.append_row(
             [
                 article_date,
@@ -467,7 +472,9 @@ def main():
         print(f"Added: {article['title']} / {category}")
 
     print(f"완료: 신규 기사 {added}건 추가")
+
     print("WEEKLY SUMMARY STARTED")
+
     weekly_ws = connect_weekly_sheet()
     recent_articles = get_recent_articles(ws, days=7)
     weekly_summary = generate_weekly_summary(recent_articles)
