@@ -10,6 +10,7 @@ from google.oauth2.service_account import Credentials
 
 SHEET_ID = os.environ["SHEET_ID"]
 SHEET_NAME = "신문기사"
+WEEKLY_SHEET_NAME = "주간동향"
 
 client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
@@ -104,9 +105,99 @@ def connect_sheet():
     gc = gspread.authorize(credentials)
     return gc.open_by_key(SHEET_ID).worksheet(SHEET_NAME)
 
+def connect_weekly_sheet():
+    info = json.loads(os.environ["GOOGLE_SERVICE_ACCOUNT_JSON"])
+    scopes = [
+        "https://www.googleapis.com/auth/spreadsheets",
+        "https://www.googleapis.com/auth/drive",
+    ]
+    credentials = Credentials.from_service_account_info(info, scopes=scopes)
+    gc = gspread.authorize(credentials)
+    return gc.open_by_key(SHEET_ID).worksheet(WEEKLY_SHEET_NAME)
+
 def get_existing_urls(ws):
     values = ws.col_values(5)
     return set(v.strip() for v in values if v.startswith("http"))
+
+def get_recent_articles(ws, days=7):
+    rows = ws.get_all_values()
+
+    if len(rows) <= 1:
+        return []
+
+    data = rows[1:]
+    today = datetime.now().date()
+    recent_articles = []
+
+    for row in data:
+        if len(row) < 5:
+            continue
+
+        date_text = row[0].strip()
+        title = row[1].strip()
+        source = row[2].strip()
+        category = row[3].strip()
+        url = row[4].strip()
+
+        try:
+            article_date = datetime.strptime(date_text, "%Y-%m-%d").date()
+        except ValueError:
+            continue
+
+        diff = (today - article_date).days
+
+        if 0 <= diff <= days:
+            recent_articles.append({
+                "date": date_text,
+                "title": title,
+                "source": source,
+                "category": category,
+                "url": url,
+            })
+
+    return recent_articles
+
+def generate_weekly_summary(articles):
+    if not articles:
+        return "최근 7일간 수집된 기사가 없습니다."
+
+    grouped = {}
+
+    for article in articles:
+        category = article["category"]
+        grouped.setdefault(category, [])
+        grouped[category].append(article)
+
+    article_text = ""
+
+    for category, items in grouped.items():
+        article_text += f"\n[{category}]\n"
+        for item in items:
+            article_text += f"- {item['date']} / {item['source']} / {item['title']} / {item['url']}\n"
+
+    prompt = f"""
+다음은 최근 7일간 수집된 북한 관련 언론 기사 목록이다.
+
+{article_text}
+
+위 기사 제목과 분류를 바탕으로 주간 북한 동향 요약을 작성하라.
+
+작성 조건:
+- 기사 본문은 읽지 않았으므로 제목과 출처에 근거해서만 작성한다.
+- 과장하거나 없는 내용을 추정하지 않는다.
+- 카테고리별 주요 흐름을 정리한다.
+- 단순 기사 나열이 아니라 동향 중심으로 정리한다.
+- 보고서 문체로 작성한다.
+- 분량은 800~1200자 내외로 한다.
+"""
+
+    response = client.responses.create(
+        model="gpt-5.4-mini",
+        input=prompt,
+        max_output_tokens=1500,
+    )
+
+    return response.output_text
 
 def fetch_yna_links():
     url = "https://www.yna.co.kr/nk/news/all"
@@ -379,5 +470,22 @@ def main():
 
     print(f"완료: 신규 기사 {added}건 추가")
 
-if __name__ == "__main__":
-    main()
+    weekly_ws = connect_weekly_sheet()
+    recent_articles = get_recent_articles(ws, days=7)
+    weekly_summary = generate_weekly_summary(recent_articles)
+
+    today_text = datetime.now().strftime("%Y-%m-%d")
+    period_text = f"최근 7일 기준 ~ {today_text}"
+
+    weekly_ws.append_row(
+        [
+            today_text,
+            period_text,
+            weekly_summary,
+        ],
+        value_input_option="RAW",
+    )
+
+    print("주간동향 요약 저장 완료")
+
+
