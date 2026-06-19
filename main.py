@@ -522,7 +522,7 @@ def main():
         print(f"Added: {article['title']} / {category}")
 
     print(f"완료: 신규 기사 {added}건 추가")
-    sort_news_sheet(ws)
+    # sort_news_sheet(ws)
     print("WEEKLY SUMMARY STARTED")
 
     weekly_ws = connect_weekly_sheet()
