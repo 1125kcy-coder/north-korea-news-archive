@@ -281,6 +281,45 @@ def generate_source_trend_summary(articles):
 
     return response.output_text
 
+def generate_top_issues(articles):
+    if not articles:
+        return "최근 7일간 수집된 기사가 없습니다."
+
+    article_text = ""
+
+    for article in articles:
+        article_text += f"- {article['date']} / {article['source']} / {article['category']} / {article['title']}\n"
+
+    prompt = f"""
+다음은 최근 7일간 수집된 북한 관련 기사 목록이다.
+
+{article_text}
+
+위 기사 제목, 출처, 분류를 바탕으로 이번 주 핵심 이슈 TOP 5를 선정하라.
+
+작성 조건:
+- 카테고리명이 아니라 구체적인 이슈명으로 작성한다.
+- 여러 기사에서 반복되거나 복수 매체가 다룬 이슈를 우선한다.
+- 기사 제목에 근거해서만 작성하고, 확인되지 않은 사실은 단정하지 않는다.
+- 각 이슈는 한 줄로 간결하게 작성한다.
+- 반드시 1~5번 번호 목록으로 작성한다.
+
+예시:
+1. 북러 협력 확대와 군사 협력 관련 보도 지속
+2. 북중 경제협력 기대감 및 접경 교류 동향 부각
+3. 북한 내부 식량·물가 불안 및 주민 생활난 관련 보도 증가
+4. 대북제재·핵문제 관련 국제사회 논의 재부상
+5. 지방 건설·산업생산 관련 북한 내부 선전 지속
+"""
+
+    response = client.responses.create(
+        model="gpt-5.4-mini",
+        input=prompt,
+        max_output_tokens=700,
+    )
+
+    return response.output_text
+
 def generate_weekly_summary(articles):
     if not articles:
         return "최근 7일간 수집된 기사가 없습니다."
@@ -689,6 +728,7 @@ def main():
     summary_articles = limit_articles_for_summary(recent_articles)
     weekly_summary = generate_weekly_summary(summary_articles)
     source_trend_summary = generate_source_trend_summary(summary_articles)
+    top_issues = generate_top_issues(summary_articles)
 
     today_text = datetime.now().strftime("%Y-%m-%d")
     period_text = f"최근 7일 기준 ~ {today_text}"
@@ -698,23 +738,24 @@ def main():
 
     for idx, row in enumerate(weekly_rows[1:], start=2):
         if len(row) >= 1 and row[0] == today_text:
-            weekly_ws.update(
-            f"A{idx}:D{idx}",
-            [[today_text, period_text, weekly_summary, source_trend_summary]],
+           weekly_ws.update(
+             f"A{idx}:E{idx}",
+            [[today_text, period_text, weekly_summary, source_trend_summary, top_issues]],
             value_input_option="RAW",
-            )
+        )
             updated = True
             break
 
     if not updated:
         weekly_ws.append_row(
-        [
+            [
             today_text,
             period_text,
             weekly_summary,
             source_trend_summary,
-        ],
-        value_input_option="RAW",
+            top_issues,
+            ],
+            value_input_option="RAW",
     )
     print("주간동향 요약 저장 완료")
 
