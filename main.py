@@ -157,6 +157,30 @@ def get_recent_articles(ws, days=7):
 
     return recent_articles
 
+def sort_news_sheet(ws):
+    rows = ws.get_all_values()
+
+    if len(rows) <= 1:
+        return
+
+    header = rows[0]
+    data = rows[1:]
+
+    data.sort(
+        key=lambda x: datetime.strptime(x[0], "%Y-%m-%d")
+        if len(x) > 0 and x[0]
+        else datetime.min
+    )
+
+    ws.clear()
+
+    ws.append_row(header)
+
+    if data:
+        ws.append_rows(data)
+
+    print("신문기사 시트 날짜 오름차순 정렬 완료")
+
 def generate_weekly_summary(articles):
     if not articles:
         return "최근 7일간 수집된 기사가 없습니다."
@@ -480,7 +504,7 @@ def main():
         print(f"Added: {article['title']} / {category}")
 
     print(f"완료: 신규 기사 {added}건 추가")
-
+    sort_news_sheet(ws)
     print("WEEKLY SUMMARY STARTED")
 
     weekly_ws = connect_weekly_sheet()
