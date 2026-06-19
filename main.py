@@ -663,7 +663,6 @@ def classify_article(title, source):
     
 def main():
     print("MAIN STARTED")
-
     ws = connect_sheet()
     existing_urls = get_existing_urls(ws)
     existing_titles = [row[1] for row in ws.get_all_values()[1:] if len(row) > 1]
@@ -678,19 +677,18 @@ def main():
 
     print(f"총 수집 후보 기사 수: {len(articles)}")
 
-    target_date = get_target_date()
-
-    filtered_articles = []
+target_date = get_target_date()
+filtered_articles = []
 
     for article in articles:
         article_date = extract_article_date(
-            article["url"],
-            article["source"]
+        article["url"],
+        article["source"]
         )
 
-        if article_date == target_date:
-            article["date"] = article_date
-            filtered_articles.append(article)
+     if article_date == target_date:
+        article["date"] = article_date
+        filtered_articles.append(article)
 
     articles = filtered_articles
 
@@ -700,60 +698,61 @@ def main():
     added = 0
 
     for article in articles:
-        if is_excluded_article(article["title"]):
+      if is_excluded_article(article["title"]):
             print(f"제외 기사: {article['title']}")
             continue
 
-        if article["url"] in existing_urls:
+      if article["url"] in existing_urls:
             continue
 
-        if is_similar_title(article["title"], existing_titles):
+      if is_similar_title(article["title"], existing_titles):
             print(f"유사 제목 제외: {article['title']}")
             continue
 
-        category = classify_article(article["title"], article["source"])
-        article_date = article["date"]
+category = classify_article(article["title"], article["source"])
+    article_date = article["date"]
        
-        ws.append_row(
-            [
-                article_date,
-                article["title"],
-                article["source"],
-                category,
-                article["url"],
-            ],
-            value_input_option="RAW",
-        )
+    ws.append_row(
+        [
+            article_date,
+            article["title"],
+            article["source"],
+            category,
+            article["url"],
+         ],
+        value_input_option="RAW",
+     )
 
-        added += 1
-        print(f"Added: {article['title']} / {category}")
+    added += 1
+    print(f"Added: {article['title']} / {category}")
 
     print(f"완료: 신규 기사 {added}건 추가")
     # sort_news_sheet(ws)
-    print("WEEKLY SUMMARY STARTED")
+   
+print("WEEKLY SUMMARY STARTED")
 
-    weekly_ws = connect_weekly_sheet()
-    recent_articles = get_recent_articles(ws, days=7)
-    summary_articles = limit_articles_for_summary(recent_articles)
-    weekly_summary = generate_weekly_summary(summary_articles)
-    source_trend_summary = generate_source_trend_summary(summary_articles)
-    top_issues = generate_top_issues(summary_articles)
+weekly_ws = connect_weekly_sheet()
+recent_articles = get_recent_articles(ws, days=7)
+summary_articles = limit_articles_for_summary(recent_articles)
+weekly_summary = generate_weekly_summary(summary_articles)
+source_trend_summary = generate_source_trend_summary(summary_articles)
+top_issues = generate_top_issues(summary_articles)
 
-    today_text = datetime.now().strftime("%Y-%m-%d")
-    period_text = f"최근 7일 기준 ~ {today_text}"
+today_text = datetime.now().strftime("%Y-%m-%d")
+period_text = f"최근 7일 기준 ~ {today_text}"
 
-    weekly_rows = weekly_ws.get_all_values()
-    updated = False
+weekly_rows = weekly_ws.get_all_values()
+updated = False
 
-    for idx, row in enumerate(weekly_rows[1:], start=2):
-        if len(row) >= 1 and row[0] == today_text:
-            weekly_ws.update(
-                f"A{idx}:E{idx}",
-                [[today_text, period_text, weekly_summary, source_trend_summary, top_issues]],
-                value_input_option="RAW",
+for idx, row in enumerate(weekly_rows[1:], start=2):
+    if len(row) >= 1 and row[0] == today_text:
+        weekly_ws.update(
+            f"A{idx}:E{idx}",
+            [[today_text, period_text, weekly_summary, source_trend_summary, top_issues]],
+            value_input_option="RAW",
         )
-            updated = True
-            break
+         updated = True
+        break
 
     if not updated:
         weekly_ws.append_row(
@@ -767,34 +766,34 @@ def main():
             value_input_option="RAW",
     )
 print(f"완료: 신규 기사 {added}건 추가")
+
 kst_now = datetime.now(timezone(timedelta(hours=9)))
 
 if kst_now.weekday() == 0 and kst_now.hour == 9:
-        print("WEEKLY SUMMARY STARTED")
+    print("WEEKLY SUMMARY STARTED")
 
-        weekly_ws = connect_weekly_sheet()
-        recent_articles = get_recent_articles(ws, days=7)
-        summary_articles = limit_articles_for_summary(recent_articles)
+    weekly_ws = connect_weekly_sheet()
+    recent_articles = get_recent_articles(ws, days=7)
+    summary_articles = limit_articles_for_summary(recent_articles)
+    weekly_summary = generate_weekly_summary(summary_articles)
+    source_trend_summary = generate_source_trend_summary(summary_articles)
+    top_issues = generate_top_issues(summary_articles)
 
-        weekly_summary = generate_weekly_summary(summary_articles)
-        source_trend_summary = generate_source_trend_summary(summary_articles)
-        top_issues = generate_top_issues(summary_articles)
+    today_text = kst_now.strftime("%Y-%m-%d")
+    period_text = f"최근 7일 기준 ~ {today_text}"
 
-        today_text = kst_now.strftime("%Y-%m-%d")
-        period_text = f"최근 7일 기준 ~ {today_text}"
+    weekly_rows = weekly_ws.get_all_values()
+    updated = False
 
-        weekly_rows = weekly_ws.get_all_values()
-        updated = False
-
-        for idx, row in enumerate(weekly_rows[1:], start=2):
-            if len(row) >= 1 and row[0] == today_text:
-                weekly_ws.update(
-                    f"A{idx}:E{idx}",
-                    [[today_text, period_text, weekly_summary, source_trend_summary, top_issues]],
-                    value_input_option="RAW",
+    for idx, row in enumerate(weekly_rows[1:], start=2):
+        if len(row) >= 1 and row[0] == today_text:
+            weekly_ws.update(
+                 f"A{idx}:E{idx}",
+                [[today_text, period_text, weekly_summary, source_trend_summary, top_issues]],
+                 value_input_option="RAW",
                 )
-                updated = True
-                break
+            updated = True
+             break
 
         if not updated:
             weekly_ws.append_row(
@@ -809,7 +808,7 @@ if kst_now.weekday() == 0 and kst_now.hour == 9:
             )
 
         print("주간동향 요약 저장 완료")
-else:
+        else:
         print("주간동향 생성일이 아니므로 건너뜀")
     print("주간동향 요약 저장 완료")
 
