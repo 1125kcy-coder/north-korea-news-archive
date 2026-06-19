@@ -4,7 +4,7 @@ import re
 import requests
 import gspread
 from bs4 import BeautifulSoup
-from datetime import datetime
+from datetime import datetime, timedelta
 from openai import OpenAI
 from google.oauth2.service_account import Credentials
 
@@ -54,7 +54,9 @@ def extract_article_date(url, source):
         if match:
             d = match.group(1)
             return f"{d[:4]}-{d[4:6]}-{d[6:8]}"
-
+            
+def get_target_date():
+    return (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
     if source == "데일리NK":
         match = re.search(r"dailynk\.com/(\d{8})", url)
         if match:
@@ -477,6 +479,25 @@ def main():
 
     print(f"총 수집 후보 기사 수: {len(articles)}")
 
+    target_date = get_target_date()
+
+    filtered_articles = []
+
+    for article in articles:
+        article_date = extract_article_date(
+            article["url"],
+            article["source"]
+        )
+
+        if article_date == target_date:
+            article["date"] = article_date
+            filtered_articles.append(article)
+
+    articles = filtered_articles
+
+    print(f"수집 대상 날짜: {target_date}")
+    print(f"어제 작성 기사 수: {len(articles)}")
+
     added = 0
 
     for article in articles:
@@ -484,11 +505,8 @@ def main():
             continue
 
         category = classify_article(article["title"], article["source"])
-        article_date = extract_article_date(
-            article["url"],
-            article["source"]
-        )
-
+        article_date = article["date"]
+       
         ws.append_row(
             [
                 article_date,
