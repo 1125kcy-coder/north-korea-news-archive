@@ -242,6 +242,43 @@ def limit_articles_for_summary(articles):
 def generate_weekly_summary(articles):
     if not articles:
         return "최근 7일간 수집된 기사가 없습니다."
+    grouped = {}
+
+    for article in articles:
+        source = article["source"]
+        grouped.setdefault(source, [])
+        grouped[source].append(article)
+
+    source_text = ""
+
+    for source, items in grouped.items():
+        source_text += f"\n[{source}]\n"
+        for item in items:
+            source_text += f"- {item['date']} / {item['category']} / {item['title']}\n"
+
+    prompt = f"""
+다음은 최근 7일간 수집된 북한 관련 기사 목록을 언론사별로 묶은 것이다.
+
+{source_text}
+
+위 기사 제목과 분류를 바탕으로 언론사별 보도 경향을 작성하라.
+
+작성 방식:
+- 언론사별로 어떤 이슈에 집중했는지 정리한다.
+- 단순 기사 나열은 금지한다.
+- 기사 본문은 읽지 않았으므로 제목과 분류에 근거해서만 작성한다.
+- 각 언론사별로 2~4문장 내외로 작성한다.
+- 마지막에 "종합 평가"를 두고, 언론사별 보도 차이를 3~4문장으로 정리한다.
+- 보고서 문체로 작성한다.
+"""
+
+    response = client.responses.create(
+        model="gpt-5.4-mini",
+        input=prompt,
+        max_output_tokens=1200,
+    )
+
+    return response.output_text
 
     grouped = {}
 
@@ -609,6 +646,7 @@ def main():
     recent_articles = get_recent_articles(ws, days=7)
     summary_articles = limit_articles_for_summary(recent_articles)
     weekly_summary = generate_weekly_summary(summary_articles)
+    source_trend_summary = generate_source_trend_summary(summary_articles)
 
     today_text = datetime.now().strftime("%Y-%m-%d")
     period_text = f"최근 7일 기준 ~ {today_text}"
@@ -619,25 +657,24 @@ def main():
     for idx, row in enumerate(weekly_rows[1:], start=2):
         if len(row) >= 1 and row[0] == today_text:
             weekly_ws.update(
-                f"A{idx}:C{idx}",
-                [[today_text, period_text, weekly_summary]],
-                value_input_option="RAW",
+            f"A{idx}:D{idx}",
+            [[today_text, period_text, weekly_summary, source_trend_summary]],
+            value_input_option="RAW",
             )
             updated = True
             break
 
     if not updated:
         weekly_ws.append_row(
-            [
-                today_text,
-                period_text,
-                weekly_summary,
-            ],
-            value_input_option="RAW",
-        )
-
+        [
+            today_text,
+            period_text,
+            weekly_summary,
+            source_trend_summary,
+        ],
+        value_input_option="RAW",
+    )
     print("주간동향 요약 저장 완료")
-
 
 if __name__ == "__main__":
     main()
