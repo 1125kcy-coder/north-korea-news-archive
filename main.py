@@ -680,10 +680,10 @@ def main():
 target_date = get_target_date()
 filtered_articles = []
 
-    for article in articles:
-        article_date = extract_article_date(
-        article["url"],
-        article["source"]
+for article in articles:
+    article_date = extract_article_date(
+    article["url"],
+    article["source"]
         )
 
      if article_date == target_date:
@@ -697,7 +697,7 @@ filtered_articles = []
 
     added = 0
 
-    for article in articles:
+for article in articles:
       if is_excluded_article(article["title"]):
             print(f"제외 기사: {article['title']}")
             continue
