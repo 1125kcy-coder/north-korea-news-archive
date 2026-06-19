@@ -766,8 +766,8 @@ def main():
             ],
             value_input_option="RAW",
     )
-
-        kst_now = datetime.now(timezone(timedelta(hours=9)))
+print(f"완료: 신규 기사 {added}건 추가")
+kst_now = datetime.now(timezone(timedelta(hours=9)))
 
     if kst_now.weekday() == 0 and kst_now.hour == 9:
         print("WEEKLY SUMMARY STARTED")
