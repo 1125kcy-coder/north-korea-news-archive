@@ -23,39 +23,28 @@ CATEGORIES = [
 ]
 
 KEYWORD_RULES = {
-    "가상화폐": ["해킹", "암호화폐", "가상화폐", "가상자산", "코인", "라자루스","탈취", "암호화 자산", "블록체인"],
-    "대북제재": ["제재", "유엔", "안보리", "제재위", "불법","불법 환적", "위반", "동결", "규탄", "대북","독자제재", "감시", "선박", "석탄 밀수"],
-    "북러무역": ["북러 무역", "북러 교역", "러시아와 무역", "러시아", "수출", "수입", "무역", "두만강", "나진", "하산", "러시아 수출", "러시아 수입"],
-    "북중무역": ["북중 무역", "북중 교역", "단둥", "중국", "수출", "수입", "교역","중국과 무역","신의주", "북중 접경", "대중 수출", "대중 수입", "교역액"],
-    "북미관계": ["미국", "트럼프", "워싱턴", "북미", "백악관", "국무부","미 의회", "미 전문가", "대북정책", "비핵화", "핵협상"],
-    "북중관계": ["중국", "시진핑", "북중", "중국 외교부","왕이", "리창", "주북 중국대사", "중국대사관"],
+    "가상화폐": ["해킹", "암호화폐", "가상화폐", "가상자산", "코인", "라자루스", "탈취", "암호화 자산", "블록체인"],
+    "대북제재": ["제재", "유엔", "안보리", "제재위", "불법", "불법 환적", "위반", "동결", "규탄", "대북", "독자제재", "감시", "선박", "석탄 밀수"],
+    "북러무역": ["북러 무역", "북러 교역", "러시아와 무역", "두만강", "나진", "하산", "러시아 수출", "러시아 수입"],
+    "북중무역": ["북중 무역", "북중 교역", "단둥", "중국과 무역", "신의주", "북중 접경", "대중 수출", "대중 수입", "교역액"],
+    "북미관계": ["미국", "트럼프", "워싱턴", "북미", "백악관", "국무부", "미 의회", "미 전문가", "대북정책", "비핵화", "핵협상"],
+    "북중관계": ["중국", "시진핑", "북중", "중국 외교부", "왕이", "리창", "주북 중국대사", "중국대사관"],
     "북러관계": ["러시아", "푸틴", "북러", "라브로프", "쇼이구", "러시아 대표단", "모스크바", "파병", "우크라이나"],
-    "남북관계": ["한국", "남북", "통일부", "이재명", "서울", "개성공단","대북전단","확성기","개성공단","금강산", "군사분계선", "DMZ"],
+    "남북관계": ["한국", "남북", "통일부", "이재명", "서울", "개성공단", "대북전단", "확성기", "금강산", "군사분계선", "DMZ"],
     "북한관광": ["관광", "관광객", "여행", "원산", "갈마", "마식령", "외국인 관광", "관광지", "호텔"],
     "산업건설": ["건설", "착공", "준공", "완공", "공사", "개건", "살림집", "농촌주택", "지방발전", "현대화 공사", "복구"],
     "산업생산": ["공장", "생산", "기업소", "증산", "생산량", "제철", "기계", "화학공업", "전력", "석탄", "광산", "제련"],
     "산업기술": ["기술", "AI", "인공지능", "연구소", "자동화", "소프트웨어", "정보기술", "과학기술", "기술개발", "태블릿"],
     "인도적지원": ["지원", "식량", "보건", "아동", "유니세프", "WFP", "식량지원", "WHO", "구호", "영양", "의약품", "백신", "재해"],
     "북한경제": ["물가", "환율", "장마당", "식량", "경제", "농민", "배급", "시장", "쌀값", "옥수수", "농장", "모내기", "수확", "임금", "돈주", "생활고", "주민", "돼지고기", "휘발유"],
-    "북한외교": ["외교", "대사", "회담", "방문", "외무성","축전", "대표단", "친선", "수교", "대외관계", "국제회의"],
-    "북중러협력":["북중러","중러","3국","삼각 협력","북·중·러"],   
+    "북한외교": ["외교", "대사", "회담", "방문", "외무성", "축전", "대표단", "친선", "수교", "대외관계", "국제회의"],
+    "북중러협력": ["북중러", "중러", "3국", "삼각 협력", "북·중·러"],
 }
 
 EXCLUDE_KEYWORDS = [
-    "이슈브리프",
-    "전문가 분석",
-    "전문가",
-    "칼럼",
-    "사설",
-    "기고",
-    "연재",
-    "역사 속으로",
-    "걷다가 역사 속으로",
-    "서평",
-    "논평",
-    "오피니언",
-    "인터뷰",
-    "해설",
+    "이슈브리프", "전문가 분석", "전문가", "칼럼", "사설", "기고",
+    "연재", "역사 속으로", "걷다가 역사 속으로", "서평", "논평",
+    "오피니언", "인터뷰", "해설",
 ]
 
 def is_excluded_article(title):
@@ -78,15 +67,17 @@ def rule_based_category(title):
                 return category
     return None
 
+def get_target_date():
+    kst_now = datetime.now(timezone(timedelta(hours=9)))
+    return (kst_now - timedelta(days=1)).strftime("%Y-%m-%d")
+
 def extract_article_date(url, source):
     if source == "연합뉴스":
         match = re.search(r"AKR(\d{8})", url)
         if match:
             d = match.group(1)
             return f"{d[:4]}-{d[4:6]}-{d[6:8]}"
-            
-def get_target_date():
-    return (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+
     if source == "데일리NK":
         match = re.search(r"dailynk\.com/(\d{8})", url)
         if match:
@@ -125,7 +116,7 @@ def get_target_date():
     except Exception as e:
         print(f"Date extraction failed: {source} / {url} / {e}")
 
-    return datetime.now().strftime("%Y-%m-%d")
+    return datetime.now(timezone(timedelta(hours=9))).strftime("%Y-%m-%d")
 
 def connect_sheet():
     info = json.loads(os.environ["GOOGLE_SERVICE_ACCOUNT_JSON"])
@@ -158,7 +149,7 @@ def get_recent_articles(ws, days=7):
         return []
 
     data = rows[1:]
-    today = datetime.now().date()
+    today = datetime.now(timezone(timedelta(hours=9))).date()
     recent_articles = []
 
     for row in data:
@@ -189,30 +180,6 @@ def get_recent_articles(ws, days=7):
 
     return recent_articles
 
-def sort_news_sheet(ws):
-    rows = ws.get_all_values()
-
-    if len(rows) <= 1:
-        return
-
-    header = rows[0]
-    data = rows[1:]
-
-    data.sort(
-        key=lambda x: datetime.strptime(x[0], "%Y-%m-%d")
-        if len(x) > 0 and x[0]
-        else datetime.min
-    )
-
-    ws.clear()
-
-    ws.append_row(header)
-
-    if data:
-        ws.append_rows(data)
-
-    print("신문기사 시트 날짜 오름차순 정렬 완료")
-
 def limit_articles_for_summary(articles):
     source_limits = {
         "연합뉴스": 10,
@@ -228,7 +195,6 @@ def limit_articles_for_summary(articles):
     for article in articles:
         source = article["source"]
         limit = source_limits.get(source, 5)
-
         current_count = source_counts.get(source, 0)
 
         if current_count < limit:
@@ -236,8 +202,58 @@ def limit_articles_for_summary(articles):
             source_counts[source] = current_count + 1
 
     print(f"주간동향 요약 대상 기사 수: {len(limited_articles)}")
-
     return limited_articles
+
+def generate_weekly_summary(articles):
+    if not articles:
+        return "최근 7일간 수집된 기사가 없습니다."
+
+    article_text = ""
+
+    for article in articles:
+        article_text += f"- {article['date']} / {article['source']} / {article['category']} / {article['title']}\n"
+
+    prompt = f"""
+다음은 최근 7일간 수집된 북한 관련 언론 기사 목록이다.
+
+{article_text}
+
+위 기사 제목, 출처, 분류를 바탕으로 최근 1주일간의 주요 북한 동향을 작성하라.
+
+작성 원칙:
+- 기사 본문이 아니라 제목·출처·분류만 근거로 작성한다.
+- 확인되지 않은 사실을 단정하지 않는다.
+- 단순 기사 나열을 하지 않는다.
+- 카테고리명을 소제목으로 쓰지 않는다.
+- 한 주간 반복적으로 등장하거나 여러 매체에서 다룬 핵심 이슈를 3~5개 선정한다.
+- 각 이슈를 구체적인 소제목으로 작성한다.
+
+작성 형식:
+1. [핵심 이슈 소제목]
+   - 해당 이슈가 어떤 흐름으로 보도되었는지 3~5문장으로 설명한다.
+
+2. [핵심 이슈 소제목]
+   - 위와 같은 방식으로 작성한다.
+
+3. [핵심 이슈 소제목]
+   - 위와 같은 방식으로 작성한다.
+
+종합 평가
+- 이번 주 보도 전반의 특징을 3~4문장으로 정리한다.
+- 향후 모니터링이 필요한 쟁점을 1~2개 제시한다.
+
+문체:
+- KIEP·통일부 주간 동향 보고서처럼 간결하고 객관적인 문체로 작성한다.
+- 전체 분량은 1000~1500자 내외로 한다.
+"""
+
+    response = client.responses.create(
+        model="gpt-5.4-mini",
+        input=prompt,
+        max_output_tokens=1500,
+    )
+
+    return response.output_text
 
 def generate_source_trend_summary(articles):
     if not articles:
@@ -303,13 +319,6 @@ def generate_top_issues(articles):
 - 기사 제목에 근거해서만 작성하고, 확인되지 않은 사실은 단정하지 않는다.
 - 각 이슈는 한 줄로 간결하게 작성한다.
 - 반드시 1~5번 번호 목록으로 작성한다.
-
-예시:
-1. 북러 협력 확대와 군사 협력 관련 보도 지속
-2. 북중 경제협력 기대감 및 접경 교류 동향 부각
-3. 북한 내부 식량·물가 불안 및 주민 생활난 관련 보도 증가
-4. 대북제재·핵문제 관련 국제사회 논의 재부상
-5. 지방 건설·산업생산 관련 북한 내부 선전 지속
 """
 
     response = client.responses.create(
@@ -320,111 +329,21 @@ def generate_top_issues(articles):
 
     return response.output_text
 
-def generate_weekly_summary(articles):
-    if not articles:
-        return "최근 7일간 수집된 기사가 없습니다."
-    grouped = {}
+def dedupe_links(links):
+    unique = []
+    seen = set()
 
-    for article in articles:
-        source = article["source"]
-        grouped.setdefault(source, [])
-        grouped[source].append(article)
+    for item in links:
+        if item["url"] not in seen:
+            unique.append(item)
+            seen.add(item["url"])
 
-    source_text = ""
-
-    for source, items in grouped.items():
-        source_text += f"\n[{source}]\n"
-        for item in items:
-            source_text += f"- {item['date']} / {item['category']} / {item['title']}\n"
-
-    prompt = f"""
-다음은 최근 7일간 수집된 북한 관련 기사 목록을 언론사별로 묶은 것이다.
-
-{source_text}
-
-위 기사 제목과 분류를 바탕으로 언론사별 보도 경향을 작성하라.
-
-작성 방식:
-- 언론사별로 어떤 이슈에 집중했는지 정리한다.
-- 단순 기사 나열은 금지한다.
-- 기사 본문은 읽지 않았으므로 제목과 분류에 근거해서만 작성한다.
-- 각 언론사별로 2~4문장 내외로 작성한다.
-- 마지막에 "종합 평가"를 두고, 언론사별 보도 차이를 3~4문장으로 정리한다.
-- 보고서 문체로 작성한다.
-"""
-
-    response = client.responses.create(
-        model="gpt-5.4-mini",
-        input=prompt,
-        max_output_tokens=1200,
-    )
-
-    return response.output_text
-
-    grouped = {}
-
-    for article in articles:
-        category = article["category"]
-        grouped.setdefault(category, [])
-        grouped[category].append(article)
-
-    article_text = ""
-
-    for category, items in grouped.items():
-        article_text += f"\n[{category}]\n"
-        for item in items:
-            article_text += f"- {item['date']} / {item['source']} / {item['title']} / {item['url']}\n"
-
-    prompt = f"""
-    다음은 최근 7일간 수집된 북한 관련 언론 기사 목록이다.
-
-    {article_text}
-
-    위 기사 제목, 출처, 분류를 바탕으로 최근 1주일간의 주요 북한 동향을 작성하라.
-
-    작성 원칙:
-    - 기사 본문이 아니라 제목·출처·분류만 근거로 작성한다.
-    - 확인되지 않은 사실을 단정하지 않는다.
-    - 단순 기사 나열을 하지 않는다.
-    - 카테고리명을 소제목으로 쓰지 않는다.
-    - 한 주간 반복적으로 등장하거나 여러 매체에서 다룬 핵심 이슈를 3~5개 선정한다.
-    - 각 이슈를 구체적인 소제목으로 작성한다.
-      예: "북러 협력 확대와 파병 관련 보도 지속", "북한 내부 식량·물가 불안 부각"
-
-    작성 형식:
-    1. [핵심 이슈 소제목]
-       - 해당 이슈가 어떤 흐름으로 보도되었는지 3~5문장으로 설명한다.
-       - 관련 출처를 자연스럽게 언급한다.
-       - 필요한 경우 관련 분류를 괄호로 덧붙인다.
-
-    2. [핵심 이슈 소제목]
-       - 위와 같은 방식으로 작성한다.
-
-    3. [핵심 이슈 소제목]
-       - 위와 같은 방식으로 작성한다.
-
-    종합 평가
-    - 이번 주 보도 전반의 특징을 3~4문장으로 정리한다.
-    - 특정 이슈가 여러 매체에서 반복적으로 나타났는지, 특정 매체가 집중 보도했는지 언급한다.
-    - 향후 모니터링이 필요한 쟁점을 1~2개 제시한다.
-
-    문체:
-    - KIEP·통일부 주간 동향 보고서처럼 간결하고 객관적인 문체로 작성한다.
-    - 과도한 수식어를 피하고, "~로 보인다", "~가 부각됐다", "~가 이어졌다" 같은 분석 보고서 표현을 사용한다.
-    - 전체 분량은 1000~1500자 내외로 한다.
-    """
-    
-    response = client.responses.create(
-        model="gpt-5.4-mini",
-        input=prompt,
-        max_output_tokens=1500,
-    )
-
-    return response.output_text
+    return unique
 
 def fetch_yna_links():
     url = "https://www.yna.co.kr/nk/news/all"
-    html = requests.get(url, timeout=20).text
+    headers = {"User-Agent": "Mozilla/5.0"}
+    html = requests.get(url, headers=headers, timeout=20).text
     soup = BeautifulSoup(html, "html.parser")
 
     links = []
@@ -453,13 +372,15 @@ def fetch_yna_links():
 
 def fetch_voa_links():
     url = "https://www.voakorea.com/z/2712"
-    html = requests.get(url, timeout=20).text
+    headers = {"User-Agent": "Mozilla/5.0"}
+    html = requests.get(url, headers=headers, timeout=20).text
     soup = BeautifulSoup(html, "html.parser")
 
     links = []
 
     for a in soup.find_all("a", href=True):
         href = a["href"]
+
         lines = [
             line.strip()
             for line in a.get_text("\n", strip=True).split("\n")
@@ -492,7 +413,8 @@ def fetch_voa_links():
 
 def fetch_spn_links():
     url = "https://www.spnews.co.kr/news/articleList.html?sc_section_code=S1N1&view_type=sm"
-    html = requests.get(url, timeout=20).text
+    headers = {"User-Agent": "Mozilla/5.0"}
+    html = requests.get(url, headers=headers, timeout=20).text
     soup = BeautifulSoup(html, "html.parser")
 
     links = []
@@ -523,7 +445,6 @@ def fetch_spn_links():
 def fetch_rfa_links():
     url = "https://www.rfa.org/korean/"
     headers = {"User-Agent": "Mozilla/5.0"}
-
     html = requests.get(url, headers=headers, timeout=20).text
     soup = BeautifulSoup(html, "html.parser")
 
@@ -542,13 +463,7 @@ def fetch_rfa_links():
         if "rfa.org/korean" not in href:
             continue
 
-        if any(x in href for x in [
-            "/multimedia/",
-            "/podcast/",
-            "/about/",
-            "#",
-            "javascript"
-        ]):
+        if any(x in href for x in ["/multimedia/", "/podcast/", "/about/", "#", "javascript"]):
             continue
 
         if not re.search(r"/korean/.*/\d{4}/\d{2}/\d{2}/", href):
@@ -564,13 +479,11 @@ def fetch_rfa_links():
 
     links = dedupe_links(links)
     print(f"RFA collected: {len(links)}")
-
     return links[:20]
 
 def fetch_dailynk_links():
     url = "https://www.dailynk.com/all/"
     headers = {"User-Agent": "Mozilla/5.0"}
-
     html = requests.get(url, headers=headers, timeout=20).text
     soup = BeautifulSoup(html, "html.parser")
 
@@ -589,15 +502,7 @@ def fetch_dailynk_links():
         if "dailynk.com" not in href:
             continue
 
-        if any(x in href for x in [
-            "/category/",
-            "/tag/",
-            "/author/",
-            "/page/",
-            "/wp-content/",
-            "javascript",
-            "#"
-        ]):
+        if any(x in href for x in ["/category/", "/tag/", "/author/", "/page/", "/wp-content/", "javascript", "#"]):
             continue
 
         if not re.search(r"dailynk\.com/\d{8}(-\d+)?/?$", href):
@@ -613,19 +518,7 @@ def fetch_dailynk_links():
 
     links = dedupe_links(links)
     print(f"Daily NK collected: {len(links)}")
-
     return links[:20]
-
-def dedupe_links(links):
-    unique = []
-    seen = set()
-
-    for item in links:
-        if item["url"] not in seen:
-            unique.append(item)
-            seen.add(item["url"])
-
-    return unique
 
 def classify_article(title, source):
     rule_category = rule_based_category(title)
@@ -660,9 +553,10 @@ def classify_article(title, source):
         category = "기타"
 
     return category
-    
+
 def main():
     print("MAIN STARTED")
+
     ws = connect_sheet()
     existing_urls = get_existing_urls(ws)
     existing_titles = [row[1] for row in ws.get_all_values()[1:] if len(row) > 1]
@@ -677,18 +571,18 @@ def main():
 
     print(f"총 수집 후보 기사 수: {len(articles)}")
 
-target_date = get_target_date()
-filtered_articles = []
+    target_date = get_target_date()
+    filtered_articles = []
 
-for article in articles:
-    article_date = extract_article_date(
-    article["url"],
-    article["source"]
+    for article in articles:
+        article_date = extract_article_date(
+            article["url"],
+            article["source"]
         )
 
-     if article_date == target_date:
-        article["date"] = article_date
-        filtered_articles.append(article)
+        if article_date == target_date:
+            article["date"] = article_date
+            filtered_articles.append(article)
 
     articles = filtered_articles
 
@@ -697,103 +591,70 @@ for article in articles:
 
     added = 0
 
-for article in articles:
-      if is_excluded_article(article["title"]):
+    for article in articles:
+        if is_excluded_article(article["title"]):
             print(f"제외 기사: {article['title']}")
             continue
 
-      if article["url"] in existing_urls:
+        if article["url"] in existing_urls:
             continue
 
-      if is_similar_title(article["title"], existing_titles):
+        if is_similar_title(article["title"], existing_titles):
             print(f"유사 제목 제외: {article['title']}")
             continue
 
-category = classify_article(article["title"], article["source"])
-    article_date = article["date"]
-       
-    ws.append_row(
-        [
-            article_date,
-            article["title"],
-            article["source"],
-            category,
-            article["url"],
-         ],
-        value_input_option="RAW",
-     )
+        category = classify_article(article["title"], article["source"])
+        article_date = article["date"]
 
-    added += 1
-    print(f"Added: {article['title']} / {category}")
-
-    print(f"완료: 신규 기사 {added}건 추가")
-    # sort_news_sheet(ws)
-   
-print("WEEKLY SUMMARY STARTED")
-
-weekly_ws = connect_weekly_sheet()
-recent_articles = get_recent_articles(ws, days=7)
-summary_articles = limit_articles_for_summary(recent_articles)
-weekly_summary = generate_weekly_summary(summary_articles)
-source_trend_summary = generate_source_trend_summary(summary_articles)
-top_issues = generate_top_issues(summary_articles)
-
-today_text = datetime.now().strftime("%Y-%m-%d")
-period_text = f"최근 7일 기준 ~ {today_text}"
-
-weekly_rows = weekly_ws.get_all_values()
-updated = False
-
-for idx, row in enumerate(weekly_rows[1:], start=2):
-    if len(row) >= 1 and row[0] == today_text:
-        weekly_ws.update(
-            f"A{idx}:E{idx}",
-            [[today_text, period_text, weekly_summary, source_trend_summary, top_issues]],
-            value_input_option="RAW",
-        )
-         updated = True
-        break
-
-    if not updated:
-        weekly_ws.append_row(
+        ws.append_row(
             [
-            today_text,
-            period_text,
-            weekly_summary,
-            source_trend_summary,
-            top_issues,
+                article_date,
+                article["title"],
+                article["source"],
+                category,
+                article["url"],
             ],
             value_input_option="RAW",
-    )
-print(f"완료: 신규 기사 {added}건 추가")
+        )
 
-kst_now = datetime.now(timezone(timedelta(hours=9)))
+        existing_urls.add(article["url"])
+        existing_titles.append(article["title"])
 
-if kst_now.weekday() == 0 and kst_now.hour == 9:
-    print("WEEKLY SUMMARY STARTED")
+        added += 1
+        print(f"Added: {article['title']} / {category}")
 
-    weekly_ws = connect_weekly_sheet()
-    recent_articles = get_recent_articles(ws, days=7)
-    summary_articles = limit_articles_for_summary(recent_articles)
-    weekly_summary = generate_weekly_summary(summary_articles)
-    source_trend_summary = generate_source_trend_summary(summary_articles)
-    top_issues = generate_top_issues(summary_articles)
+    print(f"완료: 신규 기사 {added}건 추가")
 
-    today_text = kst_now.strftime("%Y-%m-%d")
-    period_text = f"최근 7일 기준 ~ {today_text}"
+    kst_now = datetime.now(timezone(timedelta(hours=9)))
 
-    weekly_rows = weekly_ws.get_all_values()
-    updated = False
+    if kst_now.weekday() == 0 and kst_now.hour == 9:
+        print("WEEKLY SUMMARY STARTED")
 
-    for idx, row in enumerate(weekly_rows[1:], start=2):
-        if len(row) >= 1 and row[0] == today_text:
-            weekly_ws.update(
-                 f"A{idx}:E{idx}",
-                [[today_text, period_text, weekly_summary, source_trend_summary, top_issues]],
-                 value_input_option="RAW",
+        weekly_ws = connect_weekly_sheet()
+        recent_articles = get_recent_articles(ws, days=7)
+        summary_articles = limit_articles_for_summary(recent_articles)
+
+        weekly_summary = generate_weekly_summary(summary_articles)
+        source_trend_summary = generate_source_trend_summary(summary_articles)
+        top_issues = generate_top_issues(summary_articles)
+
+        today_text = kst_now.strftime("%Y-%m-%d")
+        start_date = (kst_now.date() - timedelta(days=7)).strftime("%Y-%m-%d")
+        end_date = (kst_now.date() - timedelta(days=1)).strftime("%Y-%m-%d")
+        period_text = f"{start_date}~{end_date}"
+
+        weekly_rows = weekly_ws.get_all_values()
+        updated = False
+
+        for idx, row in enumerate(weekly_rows[1:], start=2):
+            if len(row) >= 2 and row[1] == period_text:
+                weekly_ws.update(
+                    f"A{idx}:E{idx}",
+                    [[today_text, period_text, weekly_summary, source_trend_summary, top_issues]],
+                    value_input_option="RAW",
                 )
-            updated = True
-             break
+                updated = True
+                break
 
         if not updated:
             weekly_ws.append_row(
@@ -808,9 +669,8 @@ if kst_now.weekday() == 0 and kst_now.hour == 9:
             )
 
         print("주간동향 요약 저장 완료")
-        else:
+    else:
         print("주간동향 생성일이 아니므로 건너뜀")
-    print("주간동향 요약 저장 완료")
 
 if __name__ == "__main__":
     main()
