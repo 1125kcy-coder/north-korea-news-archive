@@ -523,13 +523,13 @@ def main():
 
     added = 0
 
-for article in articles:
-    if is_excluded_article(article["title"]):
-        print(f"제외 기사: {article['title']}")
-        continue
+    for article in articles:
+        if is_excluded_article(article["title"]):
+            print(f"제외 기사: {article['title']}")
+            continue
 
-    if article["url"] in existing_urls:
-        continue
+        if article["url"] in existing_urls:
+            continue
 
         category = classify_article(article["title"], article["source"])
         article_date = article["date"]
