@@ -56,8 +56,9 @@ EXCLUDE_KEYWORDS = [
     "인터뷰",
     "해설",
 ]
+
 def is_excluded_article(title):
-  for keyword in EXCLUDE_KEYWORDS:
+    for keyword in EXCLUDE_KEYWORDS:
         if keyword in title:
             return True
     return False
