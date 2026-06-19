@@ -523,7 +523,7 @@ def main():
 
     added = 0
 
-    for article in articles:
+for article in articles:
     if is_excluded_article(article["title"]):
         print(f"제외 기사: {article['title']}")
         continue
