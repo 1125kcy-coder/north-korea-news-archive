@@ -37,10 +37,31 @@ KEYWORD_RULES = {
     "인도적지원": ["지원", "식량", "보건", "아동", "유니세프", "WFP", "식량지원", "WHO", "구호", "영양", "의약품", "백신", "재해"],
     "북한경제": ["물가", "환율", "장마당", "식량", "경제", "농민", "배급", "시장", "쌀값", "옥수수", "농장", "모내기", "수확", "임금", "돈주", "생활고", "주민", "돼지고기", "휘발유"],
     "북한외교": ["외교", "대사", "회담", "방문", "외무성","축전", "대표단", "친선", "수교", "대외관계", "국제회의"],
-    "북중러협력":["북중러","중러","3국","삼각 협력","북·중·러"],
-    
+    "북중러협력":["북중러","중러","3국","삼각 협력","북·중·러"],   
 }
 
+    EXCLUDE_KEYWORDS = [
+    "이슈브리프",
+    "전문가 분석",
+    "전문가",
+    "칼럼",
+    "사설",
+    "기고",
+    "연재",
+    "역사 속으로",
+    "걷다가 역사 속으로",
+    "서평",
+    "논평",
+    "오피니언",
+    "인터뷰",
+    "해설",
+]
+def is_excluded_article(title):
+  for keyword in EXCLUDE_KEYWORDS:
+        if keyword in title:
+            return True
+    return False
+        
 def rule_based_category(title):
     for category, keywords in KEYWORD_RULES.items():
         for keyword in keywords:
@@ -463,6 +484,7 @@ def classify_article(title, source):
         category = "기타"
 
     return category
+    
 def main():
     print("MAIN STARTED")
 
@@ -501,8 +523,12 @@ def main():
     added = 0
 
     for article in articles:
-        if article["url"] in existing_urls:
-            continue
+    if is_excluded_article(article["title"]):
+        print(f"제외 기사: {article['title']}")
+        continue
+
+    if article["url"] in existing_urls:
+        continue
 
         category = classify_article(article["title"], article["source"])
         article_date = article["date"]
