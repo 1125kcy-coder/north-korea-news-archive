@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 from openai import OpenAI
 from google.oauth2.service_account import Credentials
+from difflib import SequenceMatcher
 
 SHEET_ID = os.environ["SHEET_ID"]
 SHEET_NAME = "신문기사"
@@ -62,7 +63,14 @@ def is_excluded_article(title):
         if keyword in title:
             return True
     return False
-        
+
+def is_similar_title(title, existing_titles, threshold=0.85):
+    for existing_title in existing_titles:
+        similarity = SequenceMatcher(None, title, existing_title).ratio()
+        if similarity >= threshold:
+            return True
+    return False
+
 def rule_based_category(title):
     for category, keywords in KEYWORD_RULES.items():
         for keyword in keywords:
@@ -491,6 +499,7 @@ def main():
 
     ws = connect_sheet()
     existing_urls = get_existing_urls(ws)
+    existing_titles = [row[1] for row in ws.get_all_values()[1:] if len(row) > 1]
 
     articles = (
         fetch_yna_links()
@@ -529,6 +538,10 @@ def main():
             continue
 
         if article["url"] in existing_urls:
+            continue
+
+        if is_similar_title(article["title"], existing_titles):
+            print(f"유사 제목 제외: {article['title']}")
             continue
 
         category = classify_article(article["title"], article["source"])
