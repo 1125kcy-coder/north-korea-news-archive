@@ -747,13 +747,13 @@ def main():
 
     for idx, row in enumerate(weekly_rows[1:], start=2):
         if len(row) >= 1 and row[0] == today_text:
-        weekly_ws.update(
-             f"A{idx}:E{idx}",
-            [[today_text, period_text, weekly_summary, source_trend_summary, top_issues]],
-            value_input_option="RAW",
+            weekly_ws.update(
+                f"A{idx}:E{idx}",
+                [[today_text, period_text, weekly_summary, source_trend_summary, top_issues]],
+                value_input_option="RAW",
         )
-        updated = True
-        break
+            updated = True
+            break
 
     if not updated:
         weekly_ws.append_row(
