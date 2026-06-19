@@ -213,6 +213,32 @@ def sort_news_sheet(ws):
 
     print("신문기사 시트 날짜 오름차순 정렬 완료")
 
+def limit_articles_for_summary(articles):
+    source_limits = {
+        "연합뉴스": 10,
+        "VOA": 10,
+        "RFA": 10,
+        "데일리NK": 10,
+        "SPN": 5,
+    }
+
+    source_counts = {}
+    limited_articles = []
+
+    for article in articles:
+        source = article["source"]
+        limit = source_limits.get(source, 5)
+
+        current_count = source_counts.get(source, 0)
+
+        if current_count < limit:
+            limited_articles.append(article)
+            source_counts[source] = current_count + 1
+
+    print(f"주간동향 요약 대상 기사 수: {len(limited_articles)}")
+
+    return limited_articles
+
 def generate_weekly_summary(articles):
     if not articles:
         return "최근 7일간 수집된 기사가 없습니다."
@@ -581,7 +607,8 @@ def main():
 
     weekly_ws = connect_weekly_sheet()
     recent_articles = get_recent_articles(ws, days=7)
-    weekly_summary = generate_weekly_summary(recent_articles)
+    summary_articles = limit_articles_for_summary(recent_articles)
+    weekly_summary = generate_weekly_summary(summary_articles)
 
     today_text = datetime.now().strftime("%Y-%m-%d")
     period_text = f"최근 7일 기준 ~ {today_text}"
