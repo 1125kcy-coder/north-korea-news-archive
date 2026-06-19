@@ -4,7 +4,7 @@ import re
 import requests
 import gspread
 from bs4 import BeautifulSoup
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from openai import OpenAI
 from google.oauth2.service_account import Credentials
 from difflib import SequenceMatcher
@@ -460,7 +460,16 @@ def fetch_voa_links():
 
     for a in soup.find_all("a", href=True):
         href = a["href"]
-        title = a.get_text(" ", strip=True)
+        lines = [
+            line.strip()
+            for line in a.get_text("\n", strip=True).split("\n")
+            if line.strip()
+        ]
+
+        if not lines:
+            continue
+
+        title = lines[0]
 
         if not title or len(title) < 8:
             continue
@@ -757,6 +766,51 @@ def main():
             ],
             value_input_option="RAW",
     )
+
+        kst_now = datetime.now(timezone(timedelta(hours=9)))
+
+    if kst_now.weekday() == 0 and kst_now.hour == 9:
+        print("WEEKLY SUMMARY STARTED")
+
+        weekly_ws = connect_weekly_sheet()
+        recent_articles = get_recent_articles(ws, days=7)
+        summary_articles = limit_articles_for_summary(recent_articles)
+
+        weekly_summary = generate_weekly_summary(summary_articles)
+        source_trend_summary = generate_source_trend_summary(summary_articles)
+        top_issues = generate_top_issues(summary_articles)
+
+        today_text = kst_now.strftime("%Y-%m-%d")
+        period_text = f"최근 7일 기준 ~ {today_text}"
+
+        weekly_rows = weekly_ws.get_all_values()
+        updated = False
+
+        for idx, row in enumerate(weekly_rows[1:], start=2):
+            if len(row) >= 1 and row[0] == today_text:
+                weekly_ws.update(
+                    f"A{idx}:E{idx}",
+                    [[today_text, period_text, weekly_summary, source_trend_summary, top_issues]],
+                    value_input_option="RAW",
+                )
+                updated = True
+                break
+
+        if not updated:
+            weekly_ws.append_row(
+                [
+                    today_text,
+                    period_text,
+                    weekly_summary,
+                    source_trend_summary,
+                    top_issues,
+                ],
+                value_input_option="RAW",
+            )
+
+        print("주간동향 요약 저장 완료")
+    else:
+        print("주간동향 생성일이 아니므로 건너뜀")
     print("주간동향 요약 저장 완료")
 
 if __name__ == "__main__":
