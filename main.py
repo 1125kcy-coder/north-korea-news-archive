@@ -769,7 +769,7 @@ def main():
 print(f"완료: 신규 기사 {added}건 추가")
 kst_now = datetime.now(timezone(timedelta(hours=9)))
 
-    if kst_now.weekday() == 0 and kst_now.hour == 9:
+if kst_now.weekday() == 0 and kst_now.hour == 9:
         print("WEEKLY SUMMARY STARTED")
 
         weekly_ws = connect_weekly_sheet()
@@ -809,7 +809,7 @@ kst_now = datetime.now(timezone(timedelta(hours=9)))
             )
 
         print("주간동향 요약 저장 완료")
-    else:
+else:
         print("주간동향 생성일이 아니므로 건너뜀")
     print("주간동향 요약 저장 완료")
 
