@@ -40,7 +40,7 @@ KEYWORD_RULES = {
     "북중러협력":["북중러","중러","3국","삼각 협력","북·중·러"],   
 }
 
-    EXCLUDE_KEYWORDS = [
+EXCLUDE_KEYWORDS = [
     "이슈브리프",
     "전문가 분석",
     "전문가",
