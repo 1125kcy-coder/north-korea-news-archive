@@ -484,8 +484,18 @@ def fetch_rfa_links():
 def fetch_dailynk_links():
     url = "https://www.dailynk.com/all/"
     headers = {"User-Agent": "Mozilla/5.0"}
-    html = requests.get(url, headers=headers, timeout=20).text
+try:
+    html = requests.get(
+        url,
+        headers=headers,
+        timeout=20
+    ).text
+
     soup = BeautifulSoup(html, "html.parser")
+
+except Exception as e:
+    print(f"DailyNK connection failed: {e}")
+    return []
 
     links = []
 
