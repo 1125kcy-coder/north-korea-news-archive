@@ -484,18 +484,13 @@ def fetch_rfa_links():
 def fetch_dailynk_links():
     url = "https://www.dailynk.com/all/"
     headers = {"User-Agent": "Mozilla/5.0"}
-try:
-    html = requests.get(
-        url,
-        headers=headers,
-        timeout=20
-    ).text
 
-    soup = BeautifulSoup(html, "html.parser")
-
-except Exception as e:
-    print(f"DailyNK connection failed: {e}")
-    return []
+    try:
+        html = requests.get(url, headers=headers, timeout=40).text
+        soup = BeautifulSoup(html, "html.parser")
+    except Exception as e:
+        print(f"DailyNK connection failed: {e}")
+        return []
 
     links = []
 
@@ -512,7 +507,15 @@ except Exception as e:
         if "dailynk.com" not in href:
             continue
 
-        if any(x in href for x in ["/category/", "/tag/", "/author/", "/page/", "/wp-content/", "javascript", "#"]):
+        if any(x in href for x in [
+            "/category/",
+            "/tag/",
+            "/author/",
+            "/page/",
+            "/wp-content/",
+            "javascript",
+            "#"
+        ]):
             continue
 
         if not re.search(r"dailynk\.com/\d{8}(-\d+)?/?$", href):
