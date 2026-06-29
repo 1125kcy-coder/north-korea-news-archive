@@ -331,6 +331,68 @@ def generate_top_issues(articles):
 
     return response.output_text
 
+def create_weekly_google_doc(title, period_text, weekly_summary, source_trend_summary, top_issues):
+    info = json.loads(os.environ["GOOGLE_SERVICE_ACCOUNT_JSON"])
+
+    scopes = [
+        "https://www.googleapis.com/auth/spreadsheets",
+        "https://www.googleapis.com/auth/drive",
+        "https://www.googleapis.com/auth/documents",
+    ]
+
+    credentials = Credentials.from_service_account_info(info, scopes=scopes)
+
+    drive_service = build("drive", "v3", credentials=credentials)
+    docs_service = build("docs", "v1", credentials=credentials)
+
+    file_metadata = {
+        "name": title,
+        "mimeType": "application/vnd.google-apps.document",
+        "parents": [WEEKLY_DOCS_FOLDER_ID],
+    }
+
+    file = drive_service.files().create(
+        body=file_metadata,
+        fields="id, webViewLink"
+    ).execute()
+
+    doc_id = file["id"]
+
+    content = f"""
+{title}
+
+기간: {period_text}
+
+Ⅰ. 주간동향 요약
+
+{weekly_summary}
+
+Ⅱ. 언론사별 보도경향
+
+{source_trend_summary}
+
+Ⅲ. 핵심이슈 TOP5
+
+{top_issues}
+"""
+
+    docs_service.documents().batchUpdate(
+        documentId=doc_id,
+        body={
+            "requests": [
+                {
+                    "insertText": {
+                        "location": {"index": 1},
+                        "text": content
+                    }
+                }
+            ]
+        }
+    ).execute()
+
+    print(f"Google Docs 주간동향 보고서 생성 완료: {file.get('webViewLink')}")
+    return file.get("webViewLink")
+
 def dedupe_links(links):
     unique = []
     seen = set()
@@ -642,10 +704,9 @@ def main():
 
     kst_now = datetime.now(timezone(timedelta(hours=9)))
 
-    if kst_now.weekday() == 0 and kst_now.hour == 9:
+        if kst_now.weekday() == 0 and kst_now.hour == 9:
         print("WEEKLY SUMMARY STARTED")
 
-        weekly_ws = connect_weekly_sheet()
         recent_articles = get_recent_articles(ws, days=7)
         summary_articles = limit_articles_for_summary(recent_articles)
 
@@ -658,32 +719,17 @@ def main():
         end_date = (kst_now.date() - timedelta(days=1)).strftime("%Y-%m-%d")
         period_text = f"{start_date}~{end_date}"
 
-        weekly_rows = weekly_ws.get_all_values()
-        updated = False
+        doc_title = f"북한 주간동향 보고서_{period_text}"
 
-        for idx, row in enumerate(weekly_rows[1:], start=2):
-            if len(row) >= 2 and row[1] == period_text:
-                weekly_ws.update(
-                    f"A{idx}:E{idx}",
-                    [[today_text, period_text, weekly_summary, source_trend_summary, top_issues]],
-                    value_input_option="RAW",
-                )
-                updated = True
-                break
+        create_weekly_google_doc(
+            doc_title,
+            period_text,
+            weekly_summary,
+            source_trend_summary,
+            top_issues
+        )
 
-        if not updated:
-            weekly_ws.append_row(
-                [
-                    today_text,
-                    period_text,
-                    weekly_summary,
-                    source_trend_summary,
-                    top_issues,
-                ],
-                value_input_option="RAW",
-            )
-
-        print("주간동향 요약 저장 완료")
+        print("Google Docs 주간동향 보고서 생성 완료")
     else:
         print("주간동향 생성일이 아니므로 건너뜀")
 
