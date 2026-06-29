@@ -8,6 +8,7 @@ from datetime import datetime, timedelta, timezone
 from openai import OpenAI
 from google.oauth2.service_account import Credentials
 from difflib import SequenceMatcher
+from googleapiclient.discovery import build
 
 SHEET_ID = os.environ["SHEET_ID"]
 SHEET_NAME = "신문기사"
