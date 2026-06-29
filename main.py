@@ -12,7 +12,7 @@ from googleapiclient.discovery import build
 
 SHEET_ID = os.environ["SHEET_ID"]
 SHEET_NAME = "신문기사"
-WEEKLY_SHEET_NAME = "주간동향"
+WEEKLY_DOCS_FOLDER_ID = os.environ["WEEKLY_DOCS_FOLDER_ID"]
 
 client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
@@ -122,9 +122,10 @@ def extract_article_date(url, source):
 def connect_sheet():
     info = json.loads(os.environ["GOOGLE_SERVICE_ACCOUNT_JSON"])
     scopes = [
-        "https://www.googleapis.com/auth/spreadsheets",
-        "https://www.googleapis.com/auth/drive",
-    ]
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/drive",
+    "https://www.googleapis.com/auth/documents",
+]
     credentials = Credentials.from_service_account_info(info, scopes=scopes)
     gc = gspread.authorize(credentials)
     return gc.open_by_key(SHEET_ID).worksheet(SHEET_NAME)
