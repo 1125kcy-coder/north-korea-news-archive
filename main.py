@@ -704,7 +704,7 @@ def main():
 
     kst_now = datetime.now(timezone(timedelta(hours=9)))
 
-        if kst_now.weekday() == 0 and kst_now.hour == 9:
+    if kst_now.weekday() == 0 and kst_now.hour == 9:
         print("WEEKLY SUMMARY STARTED")
 
         recent_articles = get_recent_articles(ws, days=7)
